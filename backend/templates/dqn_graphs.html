@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DQN Analytics</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #4f46e5;
+      --primary-light: rgba(79, 70, 229, 0.2);
+      --secondary-color: #a855f7;
+      --secondary-light: rgba(168, 85, 247, 0.2);
+      --accent-color: #f97316;
+      --accent-light: rgba(249, 115, 22, 0.2);
+      --success-color: #16a34a;
+      --success-light: rgba(22, 163, 74, 0.2);
+      --danger-color: #ef4444;
+      --danger-light: rgba(239, 68, 68, 0.2);
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background-color: #f9fafb;
+    }
+    
+    .header-gradient {
+      background: linear-gradient(to right, #4f46e5, #a855f7);
+      color: white;
+      padding: 2rem 0;
+      border-radius: 0.75rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .stat-card {
+      background-color: white;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      height: 100%;
+    }
+    
+    .stat-card:hover {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      transform: translateY(-2px);
+    }
+    
+    .stat-title {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #111827;
+    }
+    
+    .stat-change {
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+    }
+    
+    .stat-change.positive {
+      color: var(--success-color);
+    }
+    
+    .stat-change.negative {
+      color: var(--danger-color);
+    }
+    
+    .chart-container {
+      position: relative;
+      background-color: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      padding: 1.25rem;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      height: 100%;
+      margin-bottom: 1.5rem;
+    }
+    
+    .chart-container:hover {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      transform: translateY(-2px);
+    }
+    
+    .chart-header {
+      margin-bottom: 1rem;
+    }
+    
+    .chart-title {
+      font-weight: 700;
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: #111827;
+      display: flex;
+      align-items: center;
+    }
+    
+    .chart-title i {
+      color: var(--primary-color);
+      margin-right: 0.5rem;
+    }
+    
+    .chart-description {
+      font-size: 0.875rem;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+    
+    .chart-body {
+      position: relative;
+      height: 300px;
+    }
+    
+    .loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      border-radius: 0.75rem;
+      backdrop-filter: blur(2px);
+    }
+    
+    .loading-spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top: 4px solid var(--primary-color);
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .btn {
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      cursor: pointer;
+    }
+    
+    .btn i {
+      margin-right: 0.5rem;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+    }
+    
+    .btn-primary:hover {
+      background-color: #4338ca;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .btn-secondary {
+      background-color: white;
+      color: #4b5563;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #f9fafb;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    @media (min-width: 640px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (min-width: 1024px) {
+      .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 1.5rem;
+    }
+    
+    @media (min-width: 1024px) {
+      .charts-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container mx-auto py-8 px-4 max-w-6xl">
+    <div class="header-gradient rounded-lg">
+      <h1 class="text-4xl font-bold mb-2 text-center">DQN Agent Analytics</h1>
+      <p class="text-center text-gray-100 max-w-2xl mx-auto">
+        Real-time performance metrics for the Deep Q-Network reinforcement learning agent.
+      </p>
+    </div>
+    
+    <!-- Summary Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-title">Average Reward</div>
+        <div class="stat-value" id="avgReward">--</div>
+        <div class="stat-change positive" id="rewardTrend">
+          <i class="fas fa-arrow-up mr-1"></i>
+          <span>--</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-title">Current Epsilon</div>
+        <div class="stat-value" id="currentEpsilon">--</div>
+        <div class="stat-change negative">
+          <i class="fas fa-arrow-down mr-1"></i>
+          <span>Decreasing</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-title">Total Actions</div>
+        <div class="stat-value" id="totalActions">--</div>
+        <div class="stat-change positive">
+          <i class="fas fa-arrow-up mr-1"></i>
+          <span>Learning</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-title">Training Episodes</div>
+        <div class="stat-value" id="episodeCount">--</div>
+        <div class="stat-change positive">
+          <i class="fas fa-arrow-up mr-1"></i>
+          <span>In Progress</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Charts -->
+    <div class="charts-grid">
+      <div class="chart-container">
+        <div class="chart-header">
+          <div class="chart-title">
+            <i class="fas fa-chart-line"></i>
+            Reward Over Time
+          </div>
+          <div class="chart-description">
+            Tracks the cumulative reward received by the agent during training, showing learning progress.
+            Higher values indicate better performance.
+          </div>
+        </div>
+        <div class="chart-body">
+          <canvas id="rewardChart"></canvas>
+          <div class="loading" id="rewardLoading">
+            <div class="loading-spinner"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <div class="chart-header">
+          <div class="chart-title">
+            <i class="fas fa-chart-bar"></i>
+            Action Distribution
+          </div>
+          <div class="chart-description">
+            Shows the frequency of different actions taken by the agent across different roads.
+            Helps identify agent's preferred strategies.
+          </div>
+        </div>
+        <div class="chart-body">
+          <canvas id="actionChart"></canvas>
+          <div class="loading" id="actionLoading">
+            <div class="loading-spinner"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <div class="chart-header">
+          <div class="chart-title">
+            <i class="fas fa-wave-square"></i>
+            Exploration Rate (Epsilon)
+          </div>
+          <div class="chart-description">
+            Displays how the exploration rate decreases over time as the agent transitions from exploration to exploitation.
+            Lower values indicate more focused decision-making.
+          </div>
+        </div>
+        <div class="chart-body">
+          <canvas id="epsilonChart"></canvas>
+          <div class="loading" id="epsilonLoading">
+            <div class="loading-spinner"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <div class="chart-header">
+          <div class="chart-title">
+            <i class="fas fa-traffic-light"></i>
+            Traffic Congestion
+          </div>
+          <div class="chart-description">
+            Monitors the total number of vehicles in the simulation over time.
+            Lower values indicate better traffic management.
+          </div>
+        </div>
+        <div class="chart-body">
+          <canvas id="congestionChart"></canvas>
+          <div class="loading" id="congestionLoading">
+            <div class="loading-spinner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-center space-x-4 mt-8">
+      <button id="refreshBtn" class="btn btn-primary">
+        <i class="fas fa-sync-alt"></i>
+        Refresh Data
+      </button>
+      
+      <a href="/traffic_light" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i>
+        Back to Simulation
+      </a>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="mt-12 text-center text-gray-500 text-sm">
+      <p>DQN Analytics Dashboard • Last updated: <span id="lastUpdated">Never</span></p>
+    </footer>
+  </div>
+
+  <script>
+    // Chart instances
+    let rewardChart, actionChart, epsilonChart, congestionChart;
+    let updateInterval;
+    
+    // Loading elements
+    const loadingElements = {
+      reward: document.getElementById('rewardLoading'),
+      action: document.getElementById('actionLoading'),
+      epsilon: document.getElementById('epsilonLoading'),
+      congestion: document.getElementById('congestionLoading')
+    };
+    
+    // Chart configuration options
+    const chartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            usePointStyle: true,
+            padding: 15,
+            font: {
+              size: 12
+            }
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          titleColor: '#1f2937',
+          bodyColor: '#4b5563',
+          borderColor: '#e5e7eb',
+          borderWidth: 1,
+          padding: 12,
+          boxPadding: 6,
+          usePointStyle: true,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(context) {
+              return `Value: ${context.raw.toFixed(2)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)'
+          },
+          ticks: {
+            color: '#6b7280',
+            font: {
+              size: 11
+            }
+          },
+          title: {
+            display: true,
+            text: 'Training Steps',
+            color: '#4b5563',
+            font: {
+              size: 12,
+              weight: 'normal'
+            },
+            padding: {top: 10, bottom: 0}
+          }
+        },
+        y: {
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)'
+          },
+          ticks: {
+            color: '#6b7280',
+            font: {
+              size: 11
+            }
+          },
+          beginAtZero: true
+        }
+      },
+      animation: {
+        duration: 750,
+        easing: 'easeOutQuart'
+      },
+      elements: {
+        line: {
+          tension: 0.3
+        },
+        point: {
+          radius: 2,
+          hoverRadius: 5,
+          hitRadius: 30
+        }
+      }
+    };
+
+    // Function to calculate trend
+    function calculateTrend(history) {
+      if (!history || history.length < 10) {
+        return { value: "--", positive: true };
+      }
+
+      const recentAvg = history.slice(-5).reduce((sum, val) => sum + val, 0) / 5;
+      const previousAvg = history.slice(-10, -5).reduce((sum, val) => sum + val, 0) / 5;
+      const trend = recentAvg - previousAvg;
+
+      return {
+        value: Math.abs(trend).toFixed(2),
+        positive: trend >= 0
+      };
+    }
+
+    // Function to update summary stats
+    function updateSummaryStats(data) {
+      // Calculate average reward (last 10 episodes or all if less than 10)
+      const recentRewards = data.reward_history.slice(-10);
+      const avgReward = recentRewards.reduce((sum, val) => sum + val, 0) / recentRewards.length;
+      document.getElementById('avgReward').textContent = avgReward.toFixed(2);
+      
+      // Get current epsilon (last value)
+      const currentEpsilon = data.epsilon_history[data.epsilon_history.length - 1];
+      document.getElementById('currentEpsilon').textContent = currentEpsilon.toFixed(4);
+      
+      // Calculate total actions
+      const totalActions = Object.values(data.action_counts).reduce((sum, val) => sum + val, 0);
+      document.getElementById('totalActions').textContent = totalActions;
+      
+      // Set episode count
+      document.getElementById('episodeCount').textContent = data.reward_history.length;
+      
+      // Calculate reward trend
+      const trend = calculateTrend(data.reward_history);
+      const trendElement = document.getElementById('rewardTrend');
+      
+      if (trend.positive) {
+        trendElement.classList.add('positive');
+        trendElement.classList.remove('negative');
+        trendElement.innerHTML = `
+          <i class="fas fa-arrow-up mr-1"></i>
+          <span>+${trend.value}</span>
+        `;
+      } else {
+        trendElement.classList.add('negative');
+        trendElement.classList.remove('positive');
+        trendElement.innerHTML = `
+          <i class="fas fa-arrow-down mr-1"></i>
+          <span>${trend.value}</span>
+        `;
+      }
+    }
+
+    // Function to fetch and update data
+    async function fetchAndDrawCharts() {
+      // Show loading indicators
+      Object.values(loadingElements).forEach(el => {
+        el.style.display = 'flex';
+      });
+      
+      try {
+        // In a real app, this would be your actual API endpoint
+        // For demo purposes, we'll simulate the response
+        // const res = await fetch('/dqn_stats');
+        // const data = await res.json();
+        
+        // Simulated data for demonstration
+        const data = {
+          reward_history: Array.from({ length: 30 }, (_, i) => Math.sin(i / 3) * 10 + i / 2 + Math.random() * 3),
+          epsilon_history: Array.from({ length: 30 }, (_, i) => Math.max(0.05, 1 - i / 30)),
+          action_counts: {
+            "Action 1": 42,
+            "Action 2": 28,
+            "Action 3": 19,
+            "Action 4": 11
+          },
+          congestion_history: Array.from({ length: 30 }, (_, i) => Math.floor(Math.random() * 50) + 20 - i * 0.2)
+        };
+        
+        // Update last updated timestamp
+        document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+        
+        // Update summary stats
+        updateSummaryStats(data);
+        
+        const labels = Array.from({ length: data.reward_history.length }, (_, i) => i + 1);
+        
+        // Create or update reward chart
+        if (!rewardChart) {
+          const ctx = document.getElementById('rewardChart').getContext('2d');
+          const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+          gradient.addColorStop(0, 'rgba(79, 70, 229, 0.5)');
+          gradient.addColorStop(1, 'rgba(79, 70, 229, 0.0)');
+          
+          rewardChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: 'Reward',
+                data: data.reward_history,
+                borderColor: 'rgb(79, 70, 229)',
+                backgroundColor: gradient,
+                borderWidth: 2,
+                pointRadius: 2,
+                pointHoverRadius: 5,
+                fill: true
+              }]
+            },
+            options: {
+              ...chartOptions,
+              plugins: {
+                ...chartOptions.plugins,
+                tooltip: {
+                  ...chartOptions.plugins.tooltip,
+                  callbacks: {
+                    label: function(context) {
+                      return `Reward: ${context.raw.toFixed(2)}`;
+                    }
+                  }
+                }
+              }
+            }
+          });
+        } else {
+          rewardChart.data.labels = labels;
+          rewardChart.data.datasets[0].data = data.reward_history;
+          rewardChart.update();
+        }
+        
+        // Create or update action chart
+        if (!actionChart) {
+          const actionLabels = Object.keys(data.action_counts);
+          const actionColors = [
+            'rgba(99, 102, 241, 0.8)',  // indigo
+            'rgba(22, 163, 74, 0.8)',   // green
+            'rgba(245, 158, 11, 0.8)',  // amber
+            'rgba(239, 68, 68, 0.8)'    // red
+          ];
+          
+          actionChart = new Chart(document.getElementById('actionChart'), {
+            type: 'bar',
+            data: {
+              labels: actionLabels,
+              datasets: [{
+                label: 'Action Counts',
+                data: Object.values(data.action_counts),
+                backgroundColor: actionColors,
+                borderColor: actionColors.map(color => color.replace('0.8', '1')),
+                borderWidth: 1,
+                borderRadius: 6,
+                maxBarThickness: 50
+              }]
+            },
+            options: {
+              ...chartOptions,
+              plugins: {
+                ...chartOptions.plugins,
+                tooltip: {
+                  ...chartOptions.plugins.tooltip,
+                  callbacks: {
+                    label: function(context) {
+                      return `Count: ${context.raw}`;
+                    }
+                  }
+                }
+              }
+            }
+          });
+        } else {
+          actionChart.data.datasets[0].data = Object.values(data.action_counts);
+          actionChart.update();
+        }
+        
+        // Create or update epsilon chart
+        if (!epsilonChart) {
+          const ctx = document.getElementById('epsilonChart').getContext('2d');
+          const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+          gradient.addColorStop(0, 'rgba(168, 85, 247, 0.5)');
+          gradient.addColorStop(1, 'rgba(168, 85, 247, 0.0)');
+          
+          epsilonChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: 'Epsilon',
+                data: data.epsilon_history,
+                borderColor: 'rgb(168, 85, 247)',
+                backgroundColor: gradient,
+                borderWidth: 2,
+                pointRadius: 1,
+                pointHoverRadius: 4,
+                fill: true
+              }]
+            },
+            options: {
+              ...chartOptions,
+              plugins: {
+                ...chartOptions.plugins,
+                tooltip: {
+                  ...chartOptions.plugins.tooltip,
+                  callbacks: {
+                    label: function(context) {
+                      return `Epsilon: ${context.raw.toFixed(4)}`;
+                    }
+                  }
+                }
+              }
+            }
+          });
+        } else {
+          epsilonChart.data.labels = labels;
+          epsilonChart.data.datasets[0].data = data.epsilon_history;
+          epsilonChart.update();
+        }
+        
+        // Create or update congestion chart
+        if (!congestionChart) {
+          const ctx = document.getElementById('congestionChart').getContext('2d');
+          const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+          gradient.addColorStop(0, 'rgba(249, 115, 22, 0.5)');
+          gradient.addColorStop(1, 'rgba(249, 115, 22, 0.0)');
+          
+          congestionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: 'Vehicle Count',
+                data: data.congestion_history,
+                borderColor: 'rgb(249, 115, 22)',
+                backgroundColor: gradient,
+                borderWidth: 2,
+                pointRadius: 1,
+                pointHoverRadius: 4,
+                fill: true
+              }]
+            },
+            options: {
+              ...chartOptions,
+              plugins: {
+                ...chartOptions.plugins,
+                tooltip: {
+                  ...chartOptions.plugins.tooltip,
+                  callbacks: {
+                    label: function(context) {
+                      return `Vehicles: ${context.raw}`;
+                    }
+                  }
+                }
+              }
+            }
+          });
+        } else {
+          congestionChart.data.labels = labels;
+          congestionChart.data.datasets[0].data = data.congestion_history;
+          congestionChart.update();
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        // Show error message to user
+        alert('Failed to fetch data. Please try again later.');
+      } finally {
+        // Hide loading indicators
+        Object.values(loadingElements).forEach(el => {
+          el.style.display = 'none';
+        });
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set up refresh button
+      document.getElementById('refreshBtn').addEventListener('click', fetchAndDrawCharts);
+      
+      // Initial data fetch
+      fetchAndDrawCharts();
+      
+      // Set up interval for auto-refresh
+      updateInterval = setInterval(fetchAndDrawCharts, 3000);
+    });
+    
+    // Clean up interval when page is unloaded
+    window.addEventListener('beforeunload', () => {
+      if (updateInterval) {
+        clearInterval(updateInterval);
+      }
+    });
+  </script>
+</body>
+</html>

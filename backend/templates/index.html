@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Junction Monitoring</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --accent: #8b5cf6;
+            --accent-dark: #7c3aed;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --light: #f9fafb;
+            --dark: #1f2937;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        
+        .page-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header-gradient {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+            padding: 2rem 0;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+        }
+        
+        .card-header {
+            padding: 1rem 1.5rem;
+            background-color: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.625rem 1.25rem;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        
+        .btn-icon {
+            margin-right: 0.5rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .btn-accent {
+            background-color: var(--accent);
+            color: white;
+        }
+        
+        .btn-accent:hover {
+            background-color: var(--accent-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #4b5563;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.625rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        .form-hint {
+            margin-top: 0.25rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .direction-card {
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            background-color: white;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .direction-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .direction-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .direction-icon {
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e0e7ff;
+            color: var(--primary);
+            border-radius: 0.5rem;
+            margin-right: 0.75rem;
+        }
+        
+        .count-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        
+        .count-item {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+        
+        .count-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .count-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+        
+        .count-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .car-count {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .truck-count {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+        
+        .bus-count {
+            background-color: #fef3c7;
+            color: #b45309;
+        }
+        
+        .motorcycle-count {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            min-height: 400px;
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+        
+        .video-iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        .loading-dark {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-top-color: var(--primary);
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--primary);
+            background-color: #f0f9ff;
+        }
+        
+        .upload-icon {
+            font-size: 2rem;
+            color: #9ca3af;
+            margin-bottom: 0.5rem;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 0.5rem;
+            background-color: #e5e7eb;
+            border-radius: 1rem;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: 1rem;
+            transition: width 0.3s ease;
+        }
+        
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 1.5rem;
+        }
+        
+        .tab {
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            color: #6b7280;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .tab:hover:not(.active) {
+            color: #4b5563;
+            background-color: #f9fafb;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #1f2937;
+            color: white;
+            text-align: center;
+            border-radius: 0.375rem;
+            padding: 0.5rem;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.875rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-title {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+        }
+        
+        .stat-icon {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background-color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            max-width: 24rem;
+            z-index: 50;
+            transform: translateY(150%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+        }
+        
+        .notification-icon {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+        
+        .notification-success {
+            border-left: 4px solid var(--success);
+        }
+        
+        .notification-success .notification-icon {
+            color: var(--success);
+        }
+        
+        .notification-error {
+            border-left: 4px solid var(--danger);
+        }
+        
+        .notification-error .notification-icon {
+            color: var(--danger);
+        }
+        
+        .notification-info {
+            border-left: 4px solid var(--info);
+        }
+        
+        .notification-info .notification-icon {
+            color: var(--info);
+        }
+        
+        .notification-close {
+            margin-left: 0.75rem;
+            color: #9ca3af;
+            cursor: pointer;
+        }
+        
+        .notification-close:hover {
+            color: #4b5563;
+        }
+        
+        .roi-preview {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background-color: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        
+        .roi-box {
+            position: absolute;
+            border: 2px dashed var(--primary);
+            background-color: rgba(59, 130, 246, 0.1);
+            pointer-events: none;
+        }
+        
+        /* Mobile responsive styles */
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 1rem;
+            }
+            
+            .direction-card {
+                padding: 1rem;
+            }
+            
+            .count-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+            
+            .count-value {
+                font-size: 1.25rem;
+            }
+            
+            .video-iframe {
+                height: 300px;
+            }
+            
+            .stats-summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .header-gradient {
+                padding: 1.5rem 0;
+                border-radius: 0.5rem;
+            }
+            
+            .card-header {
+                padding: 0.75rem 1rem;
+            }
+            
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+            
+            .stats-summary {
+                grid-template-columns: 1fr;
+            }
+            
+            .notification {
+                left: 1rem;
+                right: 1rem;
+                max-width: none;
+            }
+        }
+
+        /* Additional mobile-friendly styles */
+        @media (max-width: 640px) {
+            .container {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            h2 {
+                font-size: 1.25rem;
+            }
+            
+            .video-container {
+                min-height: 200px;
+            }
+            
+            .count-card p {
+                font-size: 0.875rem;
+            }
+            
+            .count-card .text-xl {
+                font-size: 1.25rem;
+            }
+        }
+        
+        /* Style for the video iframe */
+        .video-iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="page-container px-4 py-8">
+        <div class="header-gradient px-6 py-8 mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold mb-2 text-center">Traffic Junction Monitoring</h1>
+            <p class="text-center text-gray-100 max-w-2xl mx-auto">
+                Advanced real-time traffic analysis system for monitoring vehicle flow at intersections
+            </p>
+            
+            <!-- Navigation buttons -->
+            <div class="mt-6 flex justify-center space-x-4">
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-video btn-icon"></i>
+                    Video Monitoring
+                </a>
+                <a href="/traffic_light" class="btn btn-secondary">
+                    <i class="fas fa-traffic-light btn-icon"></i>
+                    Traffic Light Simulation
+                </a>
+                <a href="/dqn_analytics" class="btn btn-accent">
+                    <i class="fas fa-chart-line btn-icon"></i>
+                    DQN Analytics
+                </a>
+            </div>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="stats-summary mb-8">
+            <div class="stat-card relative">
+                <div class="stat-title">Total Vehicles</div>
+                <div class="stat-value" id="totalVehicles">0</div>
+                <div class="text-sm text-gray-500 mt-1">Across all directions</div>
+                <div class="stat-icon bg-blue-100 text-blue-600">
+                    <i class="fas fa-car"></i>
+                </div>
+            </div>
+            
+            <div class="stat-card relative">
+                <div class="stat-title">Busiest Direction</div>
+                <div class="stat-value" id="busiestDirection">--</div>
+                <div class="text-sm text-gray-500 mt-1">Highest vehicle count</div>
+                <div class="stat-icon bg-purple-100 text-purple-600">
+                    <i class="fas fa-arrows-alt"></i>
+                </div>
+            </div>
+            
+            <div class="stat-card relative">
+                <div class="stat-title">Most Common Vehicle</div>
+                <div class="stat-value" id="mostCommonVehicle">--</div>
+                <div class="text-sm text-gray-500 mt-1">Highest vehicle type</div>
+                <div class="stat-icon bg-green-100 text-green-600">
+                    <i class="fas fa-truck"></i>
+                </div>
+            </div>
+            
+            <div class="stat-card relative">
+                <div class="stat-title">Monitoring Status</div>
+                <div class="stat-value" id="monitoringStatus">Inactive</div>
+                <div class="text-sm text-gray-500 mt-1" id="monitoringSince">Not started</div>
+                <div class="stat-icon bg-yellow-100 text-yellow-600">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Tabs -->
+        <div class="card mb-8">
+            <div class="tab-container">
+                <div class="tab active" data-tab="upload">
+                    <i class="fas fa-upload mr-2"></i>Upload Videos
+                </div>
+                <div class="tab" data-tab="monitoring">
+                    <i class="fas fa-eye mr-2"></i>Live Monitoring
+                </div>
+                <div class="tab" data-tab="analytics">
+                    <i class="fas fa-chart-bar mr-2"></i>Traffic Analytics
+                </div>
+            </div>
+            
+            <!-- Upload Tab Content -->
+            <div class="tab-content active" id="upload-tab">
+                <div class="card-body">
+                    <form id="uploadForm" class="space-y-6" enctype="multipart/form-data">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Right Direction -->
+                            <div class="direction-card">
+                                <div class="direction-header">
+                                    <div class="direction-icon">
+                                        <i class="fas fa-arrow-right"></i>
+                                    </div>
+                                    <h3 class="font-medium text-lg">Right Direction</h3>
+                                </div>
+                                
+                                <div class="upload-area" id="rightUploadArea">
+                                    <input type="file" id="rightVideo" name="right_video" accept=".mp4,.avi,.mov" class="hidden">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-file-video"></i>
+                                    </div>
+                                    <p class="mb-2">Drag & drop video or click to browse</p>
+                                    <p class="text-xs text-gray-500" id="rightFileName">No file selected</p>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <label class="form-label flex items-center">
+                                        Region of Interest
+                                        <div class="tooltip ml-2">
+                                            <i class="fas fa-info-circle text-gray-400"></i>
+                                            <span class="tooltip-text">Define the area to monitor for vehicles. Values are relative coordinates (0-1).</span>
+                                        </div>
+                                    </label>
+                                    <input type="text" id="rightRoi" name="right_roi" value="0.1,0.5,0.7,1.0" 
+                                        class="form-input">
+                                    <div class="roi-preview" id="rightRoiPreview">
+                                        <div class="roi-box" id="rightRoiBox"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Down Direction -->
+                            <div class="direction-card">
+                                <div class="direction-header">
+                                    <div class="direction-icon">
+                                        <i class="fas fa-arrow-down"></i>
+                                    </div>
+                                    <h3 class="font-medium text-lg">Down Direction</h3>
+                                </div>
+                                
+                                <div class="upload-area" id="downUploadArea">
+                                    <input type="file" id="downVideo" name="down_video" accept=".mp4,.avi,.mov" class="hidden">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-file-video"></i>
+                                    </div>
+                                    <p class="mb-2">Drag & drop video or click to browse</p>
+                                    <p class="text-xs text-gray-500" id="downFileName">No file selected</p>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <label class="form-label flex items-center">
+                                        Region of Interest
+                                        <div class="tooltip ml-2">
+                                            <i class="fas fa-info-circle text-gray-400"></i>
+                                            <span class="tooltip-text">Define the area to monitor for vehicles. Values are relative coordinates (0-1).</span>
+                                        </div>
+                                    </label>
+                                    <input type="text" id="downRoi" name="down_roi" value="0.1,0.5,0.7,1.0" 
+                                        class="form-input">
+                                    <div class="roi-preview" id="downRoiPreview">
+                                        <div class="roi-box" id="downRoiBox"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Left Direction -->
+                            <div class="direction-card">
+                                <div class="direction-header">
+                                    <div class="direction-icon">
+                                        <i class="fas fa-arrow-left"></i>
+                                    </div>
+                                    <h3 class="font-medium text-lg">Left Direction</h3>
+                                </div>
+                                
+                                <div class="upload-area" id="leftUploadArea">
+                                    <input type="file" id="leftVideo" name="left_video" accept=".mp4,.avi,.mov" class="hidden">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-file-video"></i>
+                                    </div>
+                                    <p class="mb-2">Drag & drop video or click to browse</p>
+                                    <p class="text-xs text-gray-500" id="leftFileName">No file selected</p>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <label class="form-label flex items-center">
+                                        Region of Interest
+                                        <div class="tooltip ml-2">
+                                            <i class="fas fa-info-circle text-gray-400"></i>
+                                            <span class="tooltip-text">Define the area to monitor for vehicles. Values are relative coordinates (0-1).</span>
+                                        </div>
+                                    </label>
+                                    <input type="text" id="leftRoi" name="left_roi" value="0.1,0.5,0.7,1.0" 
+                                        class="form-input">
+                                    <div class="roi-preview" id="leftRoiPreview">
+                                        <div class="roi-box" id="leftRoiBox"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Up Direction -->
+                            <div class="direction-card">
+                                <div class="direction-header">
+                                    <div class="direction-icon">
+                                        <i class="fas fa-arrow-up"></i>
+                                    </div>
+                                    <h3 class="font-medium text-lg">Up Direction</h3>
+                                </div>
+                                
+                                <div class="upload-area" id="upUploadArea">
+                                    <input type="file" id="upVideo" name="up_video" accept=".mp4,.avi,.mov" class="hidden">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-file-video"></i>
+                                    </div>
+                                    <p class="mb-2">Drag & drop video or click to browse</p>
+                                    <p class="text-xs text-gray-500" id="upFileName">No file selected</p>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <label class="form-label flex items-center">
+                                        Region of Interest
+                                        <div class="tooltip ml-2">
+                                            <i class="fas fa-info-circle text-gray-400"></i>
+                                            <span class="tooltip-text">Define the area to monitor for vehicles. Values are relative coordinates (0-1).</span>
+                                        </div>
+                                    </label>
+                                    <input type="text" id="upRoi" name="up_roi" value="0.1,0.5,0.7,1.0" 
+                                        class="form-input">
+                                    <div class="roi-preview" id="upRoiPreview">
+                                        <div class="roi-box" id="upRoiBox"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="uploadStatus" class="mt-4 text-sm"></div>
+
+                        <div class="flex justify-center mt-6">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload mr-2"></i>
+                                Upload & Process All Videos
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Monitoring Tab Content -->
+            <div class="tab-content" id="monitoring-tab">
+                <div class="card-body">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                        <!-- Right Direction Counts -->
+                        <div class="direction-card">
+                            <div class="direction-header">
+                                <div class="direction-icon">
+                                    <i class="fas fa-arrow-right"></i>
+                                </div>
+                                <h3 class="font-medium text-lg">Right Direction</h3>
+                            </div>
+                            <div class="count-grid">
+                                <div class="count-item car-count">
+                                    <div class="count-label">Cars</div>
+                                    <div class="count-value" id="rightCarCount">0</div>
+                                </div>
+                                <div class="count-item truck-count">
+                                    <div class="count-label">Trucks</div>
+                                    <div class="count-value" id="rightTruckCount">0</div>
+                                </div>
+                                <div class="count-item bus-count">
+                                    <div class="count-label">Buses</div>
+                                    <div class="count-value" id="rightBusCount">0</div>
+                                </div>
+                                <div class="count-item motorcycle-count">
+                                    <div class="count-label">Motorcycles</div>
+                                    <div class="count-value" id="rightMotorcycleCount">0</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Down Direction Counts -->
+                        <div class="direction-card">
+                            <div class="direction-header">
+                                <div class="direction-icon">
+                                    <i class="fas fa-arrow-down"></i>
+                                </div>
+                                <h3 class="font-medium text-lg">Down Direction</h3>
+                            </div>
+                            <div class="count-grid">
+                                <div class="count-item car-count">
+                                    <div class="count-label">Cars</div>
+                                    <div class="count-value" id="downCarCount">0</div>
+                                </div>
+                                <div class="count-item truck-count">
+                                    <div class="count-label">Trucks</div>
+                                    <div class="count-value" id="downTruckCount">0</div>
+                                </div>
+                                <div class="count-item bus-count">
+                                    <div class="count-label">Buses</div>
+                                    <div class="count-value" id="downBusCount">0</div>
+                                </div>
+                                <div class="count-item motorcycle-count">
+                                    <div class="count-label">Motorcycles</div>
+                                    <div class="count-value" id="downMotorcycleCount">0</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Left Direction Counts -->
+                        <div class="direction-card">
+                            <div class="direction-header">
+                                <div class="direction-icon">
+                                    <i class="fas fa-arrow-left"></i>
+                                </div>
+                                <h3 class="font-medium text-lg">Left Direction</h3>
+                            </div>
+                            <div class="count-grid">
+                                <div class="count-item car-count">
+                                    <div class="count-label">Cars</div>
+                                    <div class="count-value" id="leftCarCount">0</div>
+                                </div>
+                                <div class="count-item truck-count">
+                                    <div class="count-label">Trucks</div>
+                                    <div class="count-value" id="leftTruckCount">0</div>
+                                </div>
+                                <div class="count-item bus-count">
+                                    <div class="count-label">Buses</div>
+                                    <div class="count-value" id="leftBusCount">0</div>
+                                </div>
+                                <div class="count-item motorcycle-count">
+                                    <div class="count-label">Motorcycles</div>
+                                    <div class="count-value" id="leftMotorcycleCount">0</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Up Direction Counts -->
+                        <div class="direction-card">
+                            <div class="direction-header">
+                                <div class="direction-icon">
+                                    <i class="fas fa-arrow-up"></i>
+                                </div>
+                                <h3 class="font-medium text-lg">Up Direction</h3>
+                            </div>
+                            <div class="count-grid">
+                                <div class="count-item car-count">
+                                    <div class="count-label">Cars</div>
+                                    <div class="count-value" id="upCarCount">0</div>
+                                </div>
+                                <div class="count-item truck-count">
+                                    <div class="count-label">Trucks</div>
+                                    <div class="count-value" id="upTruckCount">0</div>
+                                </div>
+                                <div class="count-item bus-count">
+                                    <div class="count-label">Buses</div>
+                                    <div class="count-value" id="upBusCount">0</div>
+                                </div>
+                                <div class="count-item motorcycle-count">
+                                    <div class="count-label">Motorcycles</div>
+                                    <div class="count-value" id="upMotorcycleCount">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="video-container" id="videoContainer">
+                        <div class="text-center py-12">
+                            <i class="fas fa-video text-gray-400 text-5xl mb-4"></i>
+                            <p class="text-gray-500">No videos are being processed. Please upload videos for each direction.</p>
+                            <button id="checkStatusBtn" class="btn btn-outline mt-4">
+                                <i class="fas fa-sync-alt mr-2"></i>
+                                Check Processing Status
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center mt-6 space-x-4">
+                        <button id="refreshFeedBtn" class="btn btn-primary">
+                            <i class="fas fa-sync-alt mr-2"></i>
+                            Refresh Video Feed
+                        </button>
+                        <button id="restartProcessingBtn" class="btn btn-secondary">
+                            <i class="fas fa-play mr-2"></i>
+                            Restart Processing
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab Content -->
+            <div class="tab-content" id="analytics-tab">
+                <div class="card-body">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Traffic Distribution by Direction</h3>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="directionChart" height="250"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Vehicle Type Distribution</h3>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="vehicleTypeChart" height="250"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="card lg:col-span-2">
+                            <div class="card-header">
+                                <h3>Traffic Flow Over Time</h3>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="trafficFlowChart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Component -->
+    <div id="notification" class="notification">
+        <div class="notification-icon">
+            <i class="fas fa-info-circle"></i>
+        </div>
+        <div class="notification-content">
+            <div class="notification-title font-medium"></div>
+            <div class="notification-message text-sm text-gray-600"></div>
+        </div>
+        <div class="notification-close">
+            <i class="fas fa-times"></i>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching functionality
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // Remove active class from all tabs and contents
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding content
+                    tab.classList.add('active');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+            
+            // Notification system
+            const notification = document.getElementById('notification');
+            const notificationTitle = notification.querySelector('.notification-title');
+            const notificationMessage = notification.querySelector('.notification-message');
+            const notificationClose = notification.querySelector('.notification-close');
+            
+            notificationClose.addEventListener('click', () => {
+                notification.classList.remove('show');
+            });
+            
+            function showNotification(type, title, message, duration = 5000) {
+                // Remove all existing classes
+                notification.className = 'notification';
+                notification.classList.add(`notification-${type}`);
+                
+                // Set icon based on type
+                const iconElement = notification.querySelector('.notification-icon i');
+                iconElement.className = '';
+                
+                switch(type) {
+                    case 'success':
+                        iconElement.className = 'fas fa-check-circle';
+                        break;
+                    case 'error':
+                        iconElement.className = 'fas fa-exclamation-circle';
+                        break;
+                    case 'info':
+                    default:
+                        iconElement.className = 'fas fa-info-circle';
+                }
+                
+                notificationTitle.textContent = title;
+                notificationMessage.textContent = message;
+                
+                notification.classList.add('show');
+                
+                if (duration > 0) {
+                    setTimeout(() => {
+                        notification.classList.remove('show');
+                    }, duration);
+                }
+            }
+            
+            // Upload form handling
+            const uploadForm = document.getElementById('uploadForm');
+            const uploadStatus = document.getElementById('uploadStatus');
+            const videoContainer = document.getElementById('videoContainer');
+            let countUpdateInterval;
+            
+            // Setup drag and drop for file uploads
+            const directions = ['right', 'down', 'left', 'up'];
+            
+            directions.forEach(direction => {
+                const uploadArea = document.getElementById(`${direction}UploadArea`);
+                const fileInput = document.getElementById(`${direction}Video`);
+                const fileNameDisplay = document.getElementById(`${direction}FileName`);
+                
+                // Click to browse
+                uploadArea.addEventListener('click', () => {
+                    fileInput.click();
+                });
+                
+                // File selected via browse
+                fileInput.addEventListener('change', () => {
+                    if (fileInput.files.length > 0) {
+                        fileNameDisplay.textContent = fileInput.files[0].name;
+                        uploadArea.classList.add('border-primary');
+                    } else {
+                        fileNameDisplay.textContent = 'No file selected';
+                        uploadArea.classList.remove('border-primary');
+                    }
+                });
+                
+                // Drag and drop
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('dragover');
+                });
+                
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.classList.remove('dragover');
+                });
+                
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragover');
+                    
+                    if (e.dataTransfer.files.length > 0) {
+                        fileInput.files = e.dataTransfer.files;
+                        fileNameDisplay.textContent = e.dataTransfer.files[0].name;
+                        uploadArea.classList.add('border-primary');
+                    }
+                });
+                
+                // ROI preview
+                const roiInput = document.getElementById(`${direction}Roi`);
+                const roiBox = document.getElementById(`${direction}RoiBox`);
+                const roiPreview = document.getElementById(`${direction}RoiPreview`);
+                
+                function updateRoiPreview() {
+                    const values = roiInput.value.split(',').map(v => parseFloat(v));
+                    if (values.length === 4) {
+                        const [x1, y1, x2, y2] = values;
+                        const previewWidth = roiPreview.offsetWidth;
+                        const previewHeight = roiPreview.offsetHeight;
+                        
+                        roiBox.style.left = `${x1 * previewWidth}px`;
+                        roiBox.style.top = `${y1 * previewHeight}px`;
+                        roiBox.style.width = `${(x2 - x1) * previewWidth}px`;
+                        roiBox.style.height = `${(y2 - y1) * previewHeight}px`;
+                    }
+                }
+                
+                roiInput.addEventListener('input', updateRoiPreview);
+                window.addEventListener('resize', updateRoiPreview);
+                
+                // Initialize ROI preview
+                updateRoiPreview();
+            });
+            
+            // Check for existing videos and state on page load
+            async function checkExistingState() {
+                try {
+                    const response = await fetch('/state');
+                    const state = await response.json();
+                    
+                    if (state.persistent_state.videos_uploaded) {
+                        console.log("Videos were previously uploaded, restoring state");
+                        
+                        // Show notification about existing videos
+                        showNotification('info', 'Videos Available', 'Videos were previously uploaded. You can upload new videos or view the existing feed.');
+                        
+                        // Update monitoring status
+                        document.getElementById('monitoringStatus').textContent = state.processing_active ? 'Active' : 'Inactive';
+                        document.getElementById('monitoringSince').textContent = state.processing_active ? 'Since ' + new Date().toLocaleTimeString() : 'Not currently running';
+                        
+                        // Start video stream and count updates if processing is active
+                        if (state.processing_active) {
+                            // Switch to monitoring tab
+                            document.querySelector('[data-tab="monitoring"]').click();
+                            
+                            startVideoStream();
+                            startCountUpdates();
+                            initializeCharts();
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error checking existing state:", error);
+                    showNotification('error', 'Connection Error', 'Could not check system status. Please try again.');
+                }
+            }
+            
+            // Function to restart processing
+            async function restartProcessing() {
+                try {
+                    videoContainer.innerHTML = `
+                        <div class="text-center py-12">
+                            <p class="mb-4">Restarting video processing...</p>
+                            <div class="loading loading-dark mx-auto"></div>
+                        </div>
+                    `;
+                    
+                    const response = await fetch('/restart_processing', { method: 'POST' });
+                    if (response.ok) {
+                        showNotification('success', 'Processing Restarted', 'Video processing has been successfully restarted.');
+                        
+                        document.getElementById('monitoringStatus').textContent = 'Active';
+                        document.getElementById('monitoringSince').textContent = 'Since ' + new Date().toLocaleTimeString();
+                        
+                        startVideoStream();
+                        startCountUpdates();
+                        initializeCharts();
+                    } else {
+                        const errorData = await response.json();
+                        showNotification('error', 'Restart Failed', errorData.error || 'Failed to restart processing');
+                        
+                        videoContainer.innerHTML = `
+                            <div class="text-center py-12">
+                                <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-4"></i>
+                                <p class="text-red-500 mb-4">Failed to restart processing. Please try again.</p>
+                                <button id="retryRestartBtn" class="btn btn-primary">
+                                    <i class="fas fa-redo mr-2"></i>
+                                    Retry
+                                </button>
+                            </div>
+                        `;
+                        
+                        document.getElementById('retryRestartBtn').addEventListener('click', restartProcessing);
+                    }
+                } catch (error) {
+                    console.error("Error restarting processing:", error);
+                    showNotification('error', 'Connection Error', 'Could not connect to the server. Please try again.');
+                    
+                    videoContainer.innerHTML = `
+                        <div class="text-center py-12">
+                            <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-4"></i>
+                            <p class="text-red-500 mb-4">Connection error. Please check your network and try again.</p>
+                            <button id="retryRestartBtn" class="btn btn-primary">
+                                <i class="fas fa-redo mr-2"></i>
+                                Retry
+                            </button>
+                        </div>
+                    `;
+                    
+                    document.getElementById('retryRestartBtn').addEventListener('click', restartProcessing);
+                }
+            }
+            
+            // Make the restartProcessing function available globally
+            window.restartProcessing = restartProcessing;
+            
+            // Attach event listener to restart button
+            document.getElementById('restartProcessingBtn').addEventListener('click', restartProcessing);
+            document.getElementById('checkStatusBtn').addEventListener('click', checkExistingState);
+            
+            // Check for existing state
+            checkExistingState();
+            
+            // Handle form submission
+            uploadForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Check if at least one video is selected
+                const rightVideo = document.getElementById('rightVideo').files[0];
+                const downVideo = document.getElementById('downVideo').files[0];
+                const leftVideo = document.getElementById('leftVideo').files[0];
+                const upVideo = document.getElementById('upVideo').files[0];
+                
+                if (!rightVideo && !downVideo && !leftVideo && !upVideo) {
+                    showNotification('error', 'No Videos Selected', 'Please select at least one video file to upload.');
+                    return;
+                }
+                
+                // Validate video formats
+                const validFormats = ['video/mp4', 'video/avi', 'video/quicktime', 'video/x-msvideo'];
+                const allVideos = [rightVideo, downVideo, leftVideo, upVideo].filter(v => v);
+                
+                for (const video of allVideos) {
+                    if (video && !validFormats.includes(video.type)) {
+                        showNotification('error', 'Invalid Format', `${video.name} has an invalid format. Please use MP4, AVI, or MOV.`);
+                        return;
+                    }
+                }
+                
+                const formData = new FormData(uploadForm);
+                
+                // Create progress bar
+                uploadStatus.innerHTML = `
+                    <div class="mb-2 flex items-center">
+                        <span class="text-blue-600 font-medium">Uploading videos...</span>
+                        <div class="loading loading-dark ml-2"></div>
+                    </div>
+                    <div class="progress-container">
+                        <div id="uploadProgressBar" class="progress-bar" style="width: 0%"></div>
+                    </div>
+                `;
+                
+                const progressBar = document.getElementById('uploadProgressBar');
+                
+                try {
+                    // Simulate progress since we can't track actual upload progress with basic fetch
+                    const progressInterval = setInterval(() => {
+                        const currentWidth = parseInt(progressBar.style.width) || 0;
+                        if (currentWidth < 90) {
+                            progressBar.style.width = (currentWidth + 5) + '%';
+                        }
+                    }, 300);
+                    
+                    const response = await fetch('/upload_videos/', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    clearInterval(progressInterval);
+                    progressBar.style.width = '100%';
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok && !result.error) {
+                        uploadStatus.innerHTML = `<div class="text-green-600 font-medium mb-2">Success: Videos uploaded and processing started</div>`;
+                        
+                        // Show which videos were uploaded
+                        let uploadedList = '<div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">';
+                        for (const [direction, filename] of Object.entries(result.uploaded)) {
+                            const directionName = direction.charAt(0).toUpperCase() + direction.slice(1);
+                            if (filename) {
+                                uploadedList += `
+                                    <div class="bg-green-50 p-2 rounded border border-green-200">
+                                        <div class="text-green-600 font-medium">${directionName}</div>
+                                        <div class="text-xs text-gray-600 truncate" title="${filename}">${filename}</div>
+                                    </div>
+                                `;
+                            } else {
+                                uploadedList += `
+                                    <div class="bg-gray-50 p-2 rounded border border-gray-200">
+                                        <div class="text-gray-600 font-medium">${directionName}</div>
+                                        <div class="text-xs text-gray-500">No video</div>
+                                    </div>
+                                `;
+                            }
+                        }
+                        uploadedList += '</div>';
+                        uploadStatus.innerHTML += uploadedList;
+                        
+                        showNotification('success', 'Upload Complete', 'Videos have been uploaded and processing has started.');
+                        
+                        // Update monitoring status
+                        document.getElementById('monitoringStatus').textContent = 'Active';
+                        document.getElementById('monitoringSince').textContent = 'Since ' + new Date().toLocaleTimeString();
+                        
+                        // Switch to monitoring tab
+                        setTimeout(() => {
+                            document.querySelector('[data-tab="monitoring"]').click();
+                            startVideoStream();
+                            startCountUpdates();
+                            initializeCharts();
+                        }, 1500);
+                    } else {
+                        uploadStatus.innerHTML = `<div class="text-red-600 font-medium">Error: ${result.error || result.detail || 'Failed to upload'}</div>`;
+                        showNotification('error', 'Upload Failed', result.error || result.detail || 'Failed to upload videos');
+                    }
+                } catch (error) {
+                    uploadStatus.innerHTML = `<div class="text-red-600 font-medium">Error: ${error.message}</div>`;
+                    showNotification('error', 'Connection Error', 'Could not connect to the server. Please try again.');
+                }
+            });
+            
+            // Start video stream using iframe
+            function startVideoStream() {
+                videoContainer.innerHTML = `
+                    <div class="text-center py-12">
+                        <p class="mb-4">Connecting to video feed...</p>
+                        <div class="loading loading-dark mx-auto"></div>
+                    </div>
+                `;
+                
+                // Create an iframe for the video feed
+                const iframe = document.createElement('iframe');
+                iframe.className = 'video-iframe';
+                iframe.src = `/video_feed?t=${new Date().getTime()}`;
+                iframe.title = 'Video Feed';
+                iframe.allowFullscreen = true;
+                
+                // Add the iframe
+                videoContainer.innerHTML = '';
+                videoContainer.appendChild(iframe);
+                
+                // Add a direct link as fallback
+                const linkContainer = document.createElement('div');
+                linkContainer.className = 'mt-2 text-center';
+                linkContainer.innerHTML = `
+                    <a href="/video_feed?t=${new Date().getTime()}" target="_blank" class="text-blue-600 hover:underline text-sm">
+                        <i class="fas fa-external-link-alt mr-1"></i> Open video feed in new tab
+                    </a>
+                `;
+                videoContainer.appendChild(linkContainer);
+            }
+            
+            // Refresh video feed button
+            document.getElementById('refreshFeedBtn').addEventListener('click', () => {
+                startVideoStream();
+                showNotification('info', 'Feed Refreshed', 'Video feed has been refreshed.');
+            });
+            
+            // Make the startVideoStream function available globally
+            window.startVideoStream = startVideoStream;
+            
+            // Start count updates
+            function startCountUpdates() {
+                // Clear any existing interval
+                if (countUpdateInterval) {
+                    clearInterval(countUpdateInterval);
+                }
+                
+                // Update counts immediately
+                updateVehicleCounts();
+                
+                // Set interval to update counts every 1 second
+                countUpdateInterval = setInterval(updateVehicleCounts, 1000);
+            }
+            
+            // Update vehicle counts
+            async function updateVehicleCounts() {
+                try {
+                    const response = await fetch('/vehicle_counts');
+                    const data = await response.json();
+                    
+                    // Access the counts through the "counts" property
+                    const counts = data.counts || {};
+                    
+                    // Update right direction counts
+                    document.getElementById('rightCarCount').textContent = counts.right?.car || 0;
+                    document.getElementById('rightTruckCount').textContent = counts.right?.truck || 0;
+                    document.getElementById('rightBusCount').textContent = counts.right?.bus || 0;
+                    document.getElementById('rightMotorcycleCount').textContent = counts.right?.motorcycle || 0;
+                    
+                    // Update down direction counts
+                    document.getElementById('downCarCount').textContent = counts.down?.car || 0;
+                    document.getElementById('downTruckCount').textContent = counts.down?.truck || 0;
+                    document.getElementById('downBusCount').textContent = counts.down?.bus || 0;
+                    document.getElementById('downMotorcycleCount').textContent = counts.down?.motorcycle || 0;
+                    
+                    // Update left direction counts
+                    document.getElementById('leftCarCount').textContent = counts.left?.car || 0;
+                    document.getElementById('leftTruckCount').textContent = counts.left?.truck || 0;
+                    document.getElementById('leftBusCount').textContent = counts.left?.bus || 0;
+                    document.getElementById('leftMotorcycleCount').textContent = counts.left?.motorcycle || 0;
+                    
+                    // Update up direction counts
+                    document.getElementById('upCarCount').textContent = counts.up?.car || 0;
+                    document.getElementById('upTruckCount').textContent = counts.up?.truck || 0;
+                    document.getElementById('upBusCount').textContent = counts.up?.bus || 0;
+                    document.getElementById('upMotorcycleCount').textContent = counts.up?.motorcycle || 0;
+                    
+                    // Update summary statistics
+                    updateSummaryStats(counts);
+                    
+                    // Update charts if they exist
+                    updateCharts(counts);
+                } catch (error) {
+                    console.error('Error updating counts:', error);
+                }
+            }
+            
+            // Update summary statistics
+            function updateSummaryStats(counts) {
+                // Calculate total vehicles
+                let totalVehicles = 0;
+                let directionTotals = {
+                    right: 0,
+                    down: 0,
+                    left: 0,
+                    up: 0
+                };
+                
+                let vehicleTypeTotals = {
+                    car: 0,
+                    truck: 0,
+                    bus: 0,
+                    motorcycle: 0
+                };
+                
+                // Calculate totals for each direction and vehicle type
+                for (const [direction, vehicles] of Object.entries(counts)) {
+                    for (const [type, count] of Object.entries(vehicles)) {
+                        totalVehicles += count;
+                        directionTotals[direction] += count;
+                        vehicleTypeTotals[type] += count;
+                    }
+                }
+                
+                // Update total vehicles
+                document.getElementById('totalVehicles').textContent = totalVehicles;
+                
+                // Find busiest direction
+                let busiestDirection = 'None';
+                let maxDirectionCount = 0;
+                
+                for (const [direction, total] of Object.entries(directionTotals)) {
+                    if (total > maxDirectionCount) {
+                        maxDirectionCount = total;
+                        busiestDirection = direction.charAt(0).toUpperCase() + direction.slice(1);
+                    }
+                }
+                
+                document.getElementById('busiestDirection').textContent = busiestDirection;
+                
+                // Find most common vehicle type
+                let mostCommonVehicle = 'None';
+                let maxVehicleCount = 0;
+                
+                for (const [type, total] of Object.entries(vehicleTypeTotals)) {
+                    if (total > maxVehicleCount) {
+                        maxVehicleCount = total;
+                        mostCommonVehicle = type.charAt(0).toUpperCase() + type.slice(1) + 's';
+                    }
+                }
+                
+                document.getElementById('mostCommonVehicle').textContent = mostCommonVehicle;
+            }
+            
+            // Initialize charts
+            let directionChart, vehicleTypeChart, trafficFlowChart;
+            let trafficFlowData = {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Right',
+                        data: [],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Down',
+                        data: [],
+                        borderColor: 'rgb(16, 185, 129)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Left',
+                        data: [],
+                        borderColor: 'rgb(245, 158, 11)',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Up',
+                        data: [],
+                        borderColor: 'rgb(239, 68, 68)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }
+                ]
+            };
+            
+            function initializeCharts() {
+                // Direction chart
+                const directionCtx = document.getElementById('directionChart').getContext('2d');
+                directionChart = new Chart(directionCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Right', 'Down', 'Left', 'Up'],
+                        datasets: [{
+                            data: [0, 0, 0, 0],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(16, 185, 129, 0.8)',
+                                'rgba(245, 158, 11, 0.8)',
+                                'rgba(239, 68, 68, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgb(59, 130, 246)',
+                                'rgb(16, 185, 129)',
+                                'rgb(245, 158, 11)',
+                                'rgb(239, 68, 68)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Vehicle type chart
+                const vehicleTypeCtx = document.getElementById('vehicleTypeChart').getContext('2d');
+                vehicleTypeChart = new Chart(vehicleTypeCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Cars', 'Trucks', 'Buses', 'Motorcycles'],
+                        datasets: [{
+                            label: 'Count',
+                            data: [0, 0, 0, 0],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(16, 185, 129, 0.8)',
+                                'rgba(245, 158, 11, 0.8)',
+                                'rgba(239, 68, 68, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgb(59, 130, 246)',
+                                'rgb(16, 185, 129)',
+                                'rgb(245, 158, 11)',
+                                'rgb(239, 68, 68)'
+                            ],
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            maxBarThickness: 60
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+                
+                // Traffic flow chart
+                const trafficFlowCtx = document.getElementById('trafficFlowChart').getContext('2d');
+                trafficFlowChart = new Chart(trafficFlowCtx, {
+                    type: 'line',
+                    data: trafficFlowData,
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Vehicle Count'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Time'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            }
+                        },
+                        elements: {
+                            point: {
+                                radius: 0
+                            }
+                        }
+                    }
+                });
+                
+                // Start updating the traffic flow chart
+                startTrafficFlowUpdates();
+            }
+            
+            // Update charts with new data
+            function updateCharts(counts) {
+                if (!directionChart || !vehicleTypeChart) return;
+                
+                // Update direction chart
+                const directionTotals = [
+                    Object.values(counts.right || {}).reduce((a, b) => a + b, 0),
+                    Object.values(counts.down || {}).reduce((a, b) => a + b, 0),
+                    Object.values(counts.left || {}).reduce((a, b) => a + b, 0),
+                    Object.values(counts.up || {}).reduce((a, b) => a + b, 0)
+                ];
+                
+                directionChart.data.datasets[0].data = directionTotals;
+                directionChart.update();
+                
+                // Update vehicle type chart
+                const vehicleTypeTotals = [
+                    (counts.right?.car || 0) + (counts.down?.car || 0) + (counts.left?.car || 0) + (counts.up?.car || 0),
+                    (counts.right?.truck || 0) + (counts.down?.truck || 0) + (counts.left?.truck || 0) + (counts.up?.truck || 0),
+                    (counts.right?.bus || 0) + (counts.down?.bus || 0) + (counts.left?.bus || 0) + (counts.up?.bus || 0),
+                    (counts.right?.motorcycle || 0) + (counts.down?.motorcycle || 0) + (counts.left?.motorcycle || 0) + (counts.up?.motorcycle || 0)
+                ];
+                
+                vehicleTypeChart.data.datasets[0].data = vehicleTypeTotals;
+                vehicleTypeChart.update();
+            }
+            
+            // Start traffic flow updates
+            function startTrafficFlowUpdates() {
+                // Add current time to labels
+                const now = new Date();
+                const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                
+                // Keep only the last 20 data points
+                if (trafficFlowData.labels.length > 20) {
+                    trafficFlowData.labels.shift();
+                    trafficFlowData.datasets.forEach(dataset => {
+                        dataset.data.shift();
+                    });
+                }
+                
+                // Add new time label
+                trafficFlowData.labels.push(timeString);
+                
+                // Get current counts for each direction
+                const rightTotal = Object.values(document.querySelectorAll('[id^="right"][id$="Count"]'))
+                    .reduce((sum, el) => sum + parseInt(el.textContent || 0), 0);
+                
+                const downTotal = Object.values(document.querySelectorAll('[id^="down"][id$="Count"]'))
+                    .reduce((sum, el) => sum + parseInt(el.textContent || 0), 0);
+                
+                const leftTotal = Object.values(document.querySelectorAll('[id^="left"][id$="Count"]'))
+                    .reduce((sum, el) => sum + parseInt(el.textContent || 0), 0);
+                
+                const upTotal = Object.values(document.querySelectorAll('[id^="up"][id$="Count"]'))
+                    .reduce((sum, el) => sum + parseInt(el.textContent || 0), 0);
+                
+                // Add new data points
+                trafficFlowData.datasets[0].data.push(rightTotal);
+                trafficFlowData.datasets[1].data.push(downTotal);
+                trafficFlowData.datasets[2].data.push(leftTotal);
+                trafficFlowData.datasets[3].data.push(upTotal);
+                
+                // Update chart if it exists
+                if (trafficFlowChart) {
+                    trafficFlowChart.update();
+                }
+                
+                // Schedule next update
+                setTimeout(startTrafficFlowUpdates, 5000);
+            }
+        });
+    </script>
+</body>
+</html>

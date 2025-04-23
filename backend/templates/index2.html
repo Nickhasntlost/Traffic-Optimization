@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Junction Monitoring System</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --border-radius: 5px;
+            --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .video-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .video-feed {
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            background-color: #f0f0f0;
+            min-height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .video-feed img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: var(--border-radius);
+        }
+
+        .video-feed .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            border-radius: var(--border-radius);
+            z-index: 10;
+        }
+
+        .controls {
+            background-color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .control-section {
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--dark-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+
+        input[type="file"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            background-color: var(--light-color);
+        }
+
+        .roi-input {
+            display: flex;
+            gap: 5px;
+        }
+
+        .roi-input input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .counts-container {
+            margin-top: 20px;
+        }
+
+        .counts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .count-card {
+            background-color: white;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .count-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--dark-color);
+            text-transform: capitalize;
+        }
+
+        .count-list {
+            list-style: none;
+        }
+
+        .count-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .count-item:last-child {
+            border-bottom: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            background-color: var(--light-color);
+            text-align: center;
+        }
+
+        .status.connected {
+            background-color: #d5f5e3;
+            color: #27ae60;
+        }
+
+        .status.disconnected {
+            background-color: #fadbd8;
+            color: #c0392b;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .direction-label {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .advanced-options {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: var(--border-radius);
+            border: 1px solid #eee;
+        }
+
+        .advanced-options summary {
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+
+        .advanced-options summary:hover {
+            color: var(--primary-color);
+        }
+
+        .roi-description {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .refresh-button {
+            background-color: var(--secondary-color);
+            margin-top: 10px;
+        }
+
+        .refresh-button:hover {
+            background-color: #27ae60;
+        }
+
+        .detection-info {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            font-size: 0.9rem;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Traffic Junction Monitoring System</h1>
+            <p class="subtitle">Upload traffic videos and analyze vehicle movements</p>
+        </header>
+
+        <div class="dashboard">
+            <div class="video-container">
+                <h2>Live Video Feed</h2>
+                <div class="video-feed">
+                    <div id="loadingOverlay" class="loading-overlay">
+                        <div class="loading-spinner"></div>
+                        <p>Initializing video feed...</p>
+                    </div>
+                    <img id="videoStream" src="/video_feed" alt="Traffic Video Feed">
+                    <div class="detection-info">
+                        Vehicle detection active. Regions of interest are highlighted in yellow.
+                    </div>
+                </div>
+                <div id="connectionStatus" class="status">Connecting to video feed...</div>
+                <button id="refreshFeed" class="refresh-button">Refresh Video Feed</button>
+            </div>
+
+            <div class="controls">
+                <div class="control-section">
+                    <h2>Upload Videos</h2>
+                    <form id="uploadForm" class="upload-form" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="rightVideo">Right Direction:</label>
+                            <input type="file" id="rightVideo" name="right_video" accept="video/*">
+                        </div>
+                        <div class="form-group">
+                            <label for="downVideo">Down Direction:</label>
+                            <input type="file" id="downVideo" name="down_video" accept="video/*">
+                        </div>
+                        <div class="form-group">
+                            <label for="leftVideo">Left Direction:</label>
+                            <input type="file" id="leftVideo" name="left_video" accept="video/*">
+                        </div>
+                        <div class="form-group">
+                            <label for="upVideo">Up Direction:</label>
+                            <input type="file" id="upVideo" name="up_video" accept="video/*">
+                        </div>
+
+                        <details class="advanced-options">
+                            <summary>Advanced Options (ROI Settings)</summary>
+                            <p class="roi-description">Region of Interest format: x1,y1,x2,y2 (values between 0 and 1)</p>
+                            
+                            <div class="form-group">
+                                <label for="rightRoi">Right ROI:</label>
+                                <input type="text" id="rightRoi" name="right_roi" value="0.1,0.5,0.7,1.0" placeholder="x1,y1,x2,y2">
+                            </div>
+                            <div class="form-group">
+                                <label for="downRoi">Down ROI:</label>
+                                <input type="text" id="downRoi" name="down_roi" value="0.1,0.5,0.7,1.0" placeholder="x1,y1,x2,y2">
+                            </div>
+                            <div class="form-group">
+                                <label for="leftRoi">Left ROI:</label>
+                                <input type="text" id="leftRoi" name="left_roi" value="0.1,0.5,0.7,1.0" placeholder="x1,y1,x2,y2">
+                            </div>
+                            <div class="form-group">
+                                <label for="upRoi">Up ROI:</label>
+                                <input type="text" id="upRoi" name="up_roi" value="0.1,0.5,0.7,1.0" placeholder="x1,y1,x2,y2">
+                            </div>
+                        </details>
+
+                        <button type="submit" id="uploadButton">Upload and Process Videos</button>
+                    </form>
+                    <div id="uploadLoading" class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Uploading and processing videos...</p>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h2>Vehicle Counts</h2>
+                    <div class="counts-grid">
+                        <div class="count-card">
+                            <h3>Right Direction</h3>
+                            <ul id="rightCounts" class="count-list">
+                                <li class="count-item"><span>Car:</span> <span>0</span></li>
+                                <li class="count-item"><span>Truck:</span> <span>0</span></li>
+                                <li class="count-item"><span>Bus:</span> <span>0</span></li>
+                                <li class="count-item"><span>Motorcycle:</span> <span>0</span></li>
+                                <li class="count-item"><span>Bicycle:</span> <span>0</span></li>
+                            </ul>
+                        </div>
+                        <div class="count-card">
+                            <h3>Down Direction</h3>
+                            <ul id="downCounts" class="count-list">
+                                <li class="count-item"><span>Car:</span> <span>0</span></li>
+                                <li class="count-item"><span>Truck:</span> <span>0</span></li>
+                                <li class="count-item"><span>Bus:</span> <span>0</span></li>
+                                <li class="count-item"><span>Motorcycle:</span> <span>0</span></li>
+                                <li class="count-item"><span>Bicycle:</span> <span>0</span></li>
+                            </ul>
+                        </div>
+                        <div class="count-card">
+                            <h3>Left Direction</h3>
+                            <ul id="leftCounts" class="count-list">
+                                <li class="count-item"><span>Car:</span> <span>0</span></li>
+                                <li class="count-item"><span>Truck:</span> <span>0</span></li>
+                                <li class="count-item"><span>Bus:</span> <span>0</span></li>
+                                <li class="count-item"><span>Motorcycle:</span> <span>0</span></li>
+                                <li class="count-item"><span>Bicycle:</span> <span>0</span></li>
+                            </ul>
+                        </div>
+                        <div class="count-card">
+                            <h3>Up Direction</h3>
+                            <ul id="upCounts" class="count-list">
+                                <li class="count-item"><span>Car:</span> <span>0</span></li>
+                                <li class="count-item"><span>Truck:</span> <span>0</span></li>
+                                <li class="count-item"><span>Bus:</span> <span>0</span></li>
+                                <li class="count-item"><span>Motorcycle:</span> <span>0</span></li>
+                                <li class="count-item"><span>Bicycle:</span> <span>0</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Traffic Junction Monitoring System &copy; 2023</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle form submission
+            const uploadForm = document.getElementById('uploadForm');
+            const uploadButton = document.getElementById('uploadButton');
+            const uploadLoading = document.getElementById('uploadLoading');
+            const connectionStatus = document.getElementById('connectionStatus');
+            const videoStream = document.getElementById('videoStream');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const refreshFeed = document.getElementById('refreshFeed');
+
+            // Check if video stream is working
+            videoStream.onload = function() {
+                connectionStatus.textContent = 'Connected to video feed';
+                connectionStatus.classList.add('connected');
+                connectionStatus.classList.remove('disconnected');
+                loadingOverlay.style.display = 'none';
+            };
+
+            videoStream.onerror = function() {
+                connectionStatus.textContent = 'Disconnected from video feed';
+                connectionStatus.classList.add('disconnected');
+                connectionStatus.classList.remove('connected');
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.innerHTML = '<div class="loading-spinner"></div><p>Connection error. Click refresh button to try again.</p>';
+            };
+
+            // Refresh video feed button
+            refreshFeed.addEventListener('click', function() {
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.innerHTML = '<div class="loading-spinner"></div><p>Refreshing video feed...</p>';
+                videoStream.src = '/video_feed?' + new Date().getTime();
+            });
+
+            // Handle form submission
+            uploadForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                uploadButton.disabled = true;
+                uploadLoading.style.display = 'block';
+                
+                const formData = new FormData(uploadForm);
+                
+                fetch('/upload_videos/', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Success:', data);
+                    
+                    // Show loading overlay
+                    loadingOverlay.style.display = 'flex';
+                    loadingOverlay.innerHTML = '<div class="loading-spinner"></div><p>Processing videos, please wait...</p>';
+                    
+                    // Refresh video stream after a short delay
+                    setTimeout(() => {
+                        videoStream.src = '/video_feed?' + new Date().getTime();
+                    }, 2000);
+                    
+                    // Enable button and hide loading
+                    uploadButton.disabled = false;
+                    uploadLoading.style.display = 'none';
+                    
+                    // Show success message
+                    alert('Videos uploaded successfully! Processing has started.');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    
+                    // Enable button and hide loading
+                    uploadButton.disabled = false;
+                    uploadLoading.style.display = 'none';
+                    
+                    // Show error message
+                    alert('Error uploading videos. Please try again.');
+                });
+            });
+
+            // Fetch vehicle counts periodically
+            function updateVehicleCounts() {
+                fetch('/vehicle_counts')
+                .then(response => response.json())
+                .then(data => {
+                    // Update counts for each direction
+                    updateDirectionCounts('right', data.right);
+                    updateDirectionCounts('down', data.down);
+                    updateDirectionCounts('left', data.left);
+                    updateDirectionCounts('up', data.up);
+                })
+                .catch(error => {
+                    console.error('Error fetching vehicle counts:', error);
+                });
+            }
+
+            function updateDirectionCounts(direction, counts) {
+                const countsList = document.getElementById(`${direction}Counts`);
+                if (countsList && counts) {
+                    let html = '';
+                    for (const [vehicleType, count] of Object.entries(counts)) {
+                        html += `<li class="count-item"><span>${vehicleType}:</span> <span>${count}</span></li>`;
+                    }
+                    countsList.innerHTML = html;
+                }
+            }
+
+            // Update counts every 1 second
+            setInterval(updateVehicleCounts, 1000);
+            
+            // Initial update
+            updateVehicleCounts();
+        });
+    </script>
+</body>
+</html>

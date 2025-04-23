@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Simulation Button</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #f3f4f6;
+        }
+        
+        .animation-button {
+            background: linear-gradient(135deg, #4f46e5, #a855f7);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .animation-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .animation-button:active {
+            transform: translateY(0);
+        }
+        
+        .animation-button i {
+            margin-right: 0.5rem;
+        }
+        
+        .simulation-container {
+            width: 100%;
+            min-height: 400px;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background-color: #f9fafb;
+            margin-top: 1.5rem;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 3px solid rgba(79, 70, 229, 0.2);
+            border-radius: 50%;
+            border-top-color: #4f46e5;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .simulation-iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h1 class="text-2xl font-bold mb-4 text-gray-800">Traffic Simulation Control</h1>
+            
+            <p class="mb-4 text-gray-600">
+                Click the button below to run the modified cases simulation. This will execute the traffic simulation with dynamic traffic patterns.
+            </p>
+            
+            <div class="flex justify-center">
+                <button id="animationButton" class="animation-button">
+                    <i class="fas fa-play"></i>
+                    Run Animation Simulation
+                </button>
+            </div>
+            
+            <div id="simulationContainer" class="simulation-container hidden">
+                <div class="flex items-center justify-center h-full">
+                    <div class="text-center">
+                        <div class="loading mx-auto mb-4"></div>
+                        <p class="text-gray-600">Starting simulation...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="simulationStatus" class="mt-4 text-center text-gray-600"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const animationButton = document.getElementById('animationButton');
+            const simulationContainer = document.getElementById('simulationContainer');
+            const simulationStatus = document.getElementById('simulationStatus');
+            
+            animationButton.addEventListener('click', function() {
+                // Show loading state
+                simulationContainer.classList.remove('hidden');
+                animationButton.disabled = true;
+                animationButton.innerHTML = '<div class="loading mr-2"></div> Starting...';
+                
+                // Make API call to start the simulation
+                fetch('/start_modified_cases', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        // Success - show the simulation iframe
+                        simulationContainer.innerHTML = `
+                            <iframe src="/modified_cases_feed?t=${new Date().getTime()}" 
+                                    class="simulation-iframe" 
+                                    title="Modified Cases Simulation"></iframe>
+                            <div class="flex justify-center mt-4 space-x-4">
+                                <button id="refreshButton" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                                    <i class="fas fa-sync-alt mr-2"></i>Refresh Feed
+                                </button>
+                                <button id="stopButton" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                    <i class="fas fa-stop mr-2"></i>Stop Simulation
+                                </button>
+                            </div>
+                        `;
+                        
+                        // Re-enable the button
+                        animationButton.disabled = false;
+                        animationButton.innerHTML = '<i class="fas fa-play"></i> Run Animation Simulation';
+                        
+                        // Add event listeners to the new buttons
+                        document.getElementById('refreshButton').addEventListener('click', function() {
+                            const iframe = document.querySelector('.simulation-iframe');
+                            iframe.src = `/modified_cases_feed?t=${new Date().getTime()}`;
+                        });
+                        
+                        document.getElementById('stopButton').addEventListener('click', function() {
+                            fetch('/stop_modified_cases', { method: 'POST' })
+                                .then(response => response.json())
+                                .then(data => {
+                                    simulationStatus.textContent = data.message || 'Simulation stopped';
+                                    simulationContainer.classList.add('hidden');
+                                })
+                                .catch(error => {
+                                    console.error('Error stopping simulation:', error);
+                                    simulationStatus.textContent = 'Error stopping simulation';
+                                });
+                        });
+                    } else {
+                        // Error
+                        simulationStatus.textContent = data.error || 'Failed to start simulation';
+                        simulationContainer.innerHTML = `
+                            <div class="flex items-center justify-center h-full">
+                                <div class="text-center">
+                                    <i class="fas fa-exclamation-triangle text-red-500 text-4xl mb-4"></i>
+                                    <p class="text-red-500">Failed to start simulation. Please try again.</p>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Re-enable the button
+                        animationButton.disabled = false;
+                        animationButton.innerHTML = '<i class="fas fa-play"></i> Run Animation Simulation';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error starting simulation:', error);
+                    simulationStatus.textContent = 'Error connecting to server';
+                    simulationContainer.innerHTML = `
+                        <div class="flex items-center justify-center h-full">
+                            <div class="text-center">
+                                <i class="fas fa-exclamation-triangle text-red-500 text-4xl mb-4"></i>
+                                <p class="text-red-500">Connection error. Please check if the server is running.</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Re-enable the button
+                    animationButton.disabled = false;
+                    animationButton.innerHTML = '<i class="fas fa-play"></i> Run Animation Simulation';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
